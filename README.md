@@ -8,7 +8,7 @@ Configuración estandar de esta aplicación en el archivo docker-compose.yml:
 
 ```yml
 distributor:
-    image: distributor
+    image: gnoss/distributor
     env_file: .env
     environment:
      virtuosoConnectionString: ${virtuosoConnectionString}
