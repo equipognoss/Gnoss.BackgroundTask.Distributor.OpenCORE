@@ -4,6 +4,13 @@
 
 Aplicación de segundo plano que recibe un evento de creación o edición de un recurso y notifica al resto de servicios que tienen que realizar alguna acción. Por ejemplo, Community Wall, User Wall, etc.
 
+Este servicio está escuchando la cola de nombre "cola". Se envía un mensaje a esta cola cada vez que se crea, comparte, edita o elimina un recurso desde la Web o el API, para que este servicio distrubya ese evento a otros servicios a través de estas colas: 
+
+* ColaUsuarios: es procesada por el servicio Gnoss.BackgroundTask.CommunityWall
+* ColaUsuariosEspecifico: es procesada por el servicio Gnoss.BackgroundTask.CommunityWall
+
+Si el evento es de un comentario a un recurso (un comentario nuevo, editado o eliminado), también genera en el grafo del usuario que ha creado ese recurso el comentario, para que pueda verlo desde su bandeja de comentarios. 
+
 Configuración estandar de esta aplicación en el archivo docker-compose.yml: 
 
 ```yml
