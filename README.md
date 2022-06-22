@@ -15,7 +15,7 @@ Configuración estandar de esta aplicación en el archivo docker-compose.yml:
 
 ```yml
 distributor:
-    image: gnoss/distributor
+    image: gnoss/gnoss.backgroundtask.distributor.opencore
     env_file: .env
     environment:
      virtuosoConnectionString: ${virtuosoConnectionString}
