@@ -99,7 +99,9 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                 VirtuosoAD virtuosoAD = scope.ServiceProvider.GetRequiredService<VirtuosoAD>();
                 RedisCacheWrapper redisCacheWrapper = scope.ServiceProvider.GetRequiredService<RedisCacheWrapper>();
                 GnossCache gnossCache = scope.ServiceProvider.GetRequiredService<GnossCache>();
+                ConfigService configService = scope.ServiceProvider.GetRequiredService<ConfigService>();
                 IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication = scope.ServiceProvider.GetRequiredService<IServicesUtilVirtuosoAndReplication>();
+                ComprobarTraza("Distributor", entityContext, loggingService, redisCacheWrapper, configService, servicesUtilVirtuosoAndReplication);
                 try
                 {
                     ComprobarCancelacionHilo();
@@ -115,7 +117,6 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                         ProcesarFilasDeCola(filaCola, entityContext, loggingService, virtuosoAD, redisCacheWrapper, entityContextBASE, gnossCache, servicesUtilVirtuosoAndReplication);
 
                         filaCola = null;
-                        servicesUtilVirtuosoAndReplication.ConexionAfinidad = "";
 
                         ControladorConexiones.CerrarConexiones(false);
                     }
@@ -125,6 +126,10 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                 {
                     loggingService.GuardarLogError(ex);
                     return true;
+                }
+                finally
+                {
+                    GuardarTraza(loggingService);
                 }
             }
         }
