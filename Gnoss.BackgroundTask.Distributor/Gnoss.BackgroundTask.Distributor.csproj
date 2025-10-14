@@ -1,18 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <UserSecretsId>dotnet-Gnoss.BackgroundTask.Distributor-9A27B51D-76E0-4380-AC68-C6C15E98D2C3</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<UserSecretsId>dotnet-Gnoss.BackgroundTask.Distributor-9A27B51D-76E0-4380-AC68-C6C15E98D2C3</UserSecretsId>
+		<ServerGarbageCollection>false</ServerGarbageCollection>
+	</PropertyGroup>
 
-  <ItemGroup>
-	  <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="5.0.1" />
-	  <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="5.0.1" />
-	  <PackageReference Include="Npgsql" Version="6.0.11" />
-	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
-	  <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.90" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+		<PackageReference Include="Npgsql" Version="8.0.5" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+		<PackageReference Include="Oracle.EntityFrameworkCore" Version="8.23.60" />
+		<PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Gnoss.AD\Es.Riam.Gnoss.AD.csproj" />
@@ -28,8 +31,10 @@
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Gnoss.Util\Es.Riam.Gnoss.Util.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Gnoss.Web.Controles\Es.Riam.Gnoss.Web.Controles.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Gnoss.Web.MVC.Models\Es.Riam.Gnoss.Web.MVC.Models.csproj" />
+    <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.InterfacesOpen\Es.Riam.InterfacesOpen.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Interfaces\Es.Riam.Interfaces.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.OpenReplication\Es.Riam.OpenReplication.csproj" />
+    <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Open\Es.Riam.Open.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Semantica\Es.Riam.Semantica.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Util\Es.Riam.Util.csproj" />
     <ProjectReference Include="..\..\Gnoss.Commons\Es.Riam.Web.Util\Es.Riam.Web.Util.csproj" />

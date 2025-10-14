@@ -1,3 +1,4 @@
+using Es.Riam.Gnoss.Elementos.Suscripcion;
 using Es.Riam.Gnoss.ServicioRepartoColas;
 using Es.Riam.Gnoss.Servicios;
 using Es.Riam.Gnoss.Util.Configuracion;
@@ -14,19 +15,20 @@ namespace Gnoss.BackgroundTask.Distributor
 {
     public class DistributorWorker : Worker
     {
-        private readonly ILogger<DistributorWorker> _logger;
         private readonly ConfigService _configService;
-
-        public DistributorWorker(ILogger<DistributorWorker> logger, ConfigService configService, IServiceScopeFactory scopeFactory) : base(logger, scopeFactory)
+        private ILogger mlogger;
+        private ILoggerFactory mLoggerFactory;
+        public DistributorWorker(ConfigService configService, IServiceScopeFactory scopeFactory, ILogger<DistributorWorker> logger, ILoggerFactory loggerFactory) : base(logger, scopeFactory)
         {
-            _logger = logger;
             _configService = configService;
+            mlogger = logger;
+            mLoggerFactory = loggerFactory;
         }
 
         protected override List<ControladorServicioGnoss> ObtenerControladores()
         {
             List<ControladorServicioGnoss> controladores = new List<ControladorServicioGnoss>();
-            controladores.Add(new Controller(ScopedFactory, _configService));
+            controladores.Add(new Controller(ScopedFactory, _configService, mLoggerFactory.CreateLogger<Controller>(), mLoggerFactory));
             return controladores;
         }
     }
