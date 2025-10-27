@@ -105,10 +105,10 @@ namespace Gnoss.BackgroundTask.Distributor
                     if (bdType.Equals("0"))
                     {
                         services.AddDbContext<EntityContext>(options =>
-                                options.UseSqlServer(acid)
+                                options.UseSqlServer(acid, o => o.UseCompatibilityLevel(110))
                                 );
                         services.AddDbContext<EntityContextBASE>(options =>
-                                options.UseSqlServer(baseConnection)
+                                options.UseSqlServer(baseConnection, o => o.UseCompatibilityLevel(110))
 
                                 );
                     }
