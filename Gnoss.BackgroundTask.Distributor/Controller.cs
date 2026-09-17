@@ -63,13 +63,14 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         private LiveDS mLiveDSMiembros = new LiveDS();
 
         /// <summary>
-        /// Lista con los nombres de las ontologías de las que hay que descartar las filas de sus recursos.
+        /// Lista con los nombres de las ontologï¿½as de las que hay que descartar las filas de sus recursos.
         /// </summary>
         private List<string> mOntologiasDescartarFilas;
 
         private int? mTablaBaseProyectoID;
         private ILogger mlogger;
         private ILoggerFactory mLoggerFactory;
+        private RabbitMQClient mRabbitMQClient;
         #endregion
 
         #region Constructores
@@ -77,7 +78,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="pFicheroConfiguracionBD">Ruta al archivo de configuración de la base de datos</param>
+        /// <param name="pFicheroConfiguracionBD">Ruta al archivo de configuraciï¿½n de la base de datos</param>
         public Controller(IServiceScopeFactory scopedFactory, ConfigService configService, ILogger<Controller> logger, ILoggerFactory loggerFactory)
             : base(scopedFactory, configService,logger,loggerFactory)
         {
@@ -92,7 +93,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
 
         #endregion
 
-        #region Métodos generales
+        #region Mï¿½todos generales
         
         public bool ProcesarItem(string pFila)
         {
@@ -100,9 +101,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
             {
                 EntityContext entityContext = scope.ServiceProvider.GetRequiredService<EntityContext>();
                 EntityContextBASE entityContextBASE = scope.ServiceProvider.GetRequiredService<EntityContextBASE>();
-                UtilidadesVirtuoso utilidadesVirtuoso = scope.ServiceProvider.GetRequiredService<UtilidadesVirtuoso>();
                 LoggingService loggingService = scope.ServiceProvider.GetRequiredService<LoggingService>();
-                VirtuosoAD virtuosoAD = scope.ServiceProvider.GetRequiredService<VirtuosoAD>();
                 RedisCacheWrapper redisCacheWrapper = scope.ServiceProvider.GetRequiredService<RedisCacheWrapper>();
                 GnossCache gnossCache = scope.ServiceProvider.GetRequiredService<GnossCache>();
                 ConfigService configService = scope.ServiceProvider.GetRequiredService<ConfigService>();
@@ -121,7 +120,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                         LiveDS.ColaRow filaCola = (LiveDS.ColaRow)new LiveDS().Cola.Rows.Add(itemArray);
                         itemArray = null;
 
-                        ProcesarFilasDeCola(filaCola, entityContext, loggingService, virtuosoAD, redisCacheWrapper, entityContextBASE, gnossCache, servicesUtilVirtuosoAndReplication, availableServices);
+                        ProcesarFilasDeCola(filaCola, entityContext, loggingService, redisCacheWrapper, entityContextBASE, gnossCache, servicesUtilVirtuosoAndReplication, availableServices);
 
                         filaCola = null;
 
@@ -142,7 +141,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         }
 
         /// <summary>
-        /// Procesa cada suscripcion para crear su notificación a través de RabbitMQ
+        /// Procesa cada suscripcion para crear su notificaciï¿½n a travï¿½s de RabbitMQ
         /// </summary>
         private void RealizarMantenimientoRabbitMQ(LoggingService loggingService, bool reintentar = true)
         {
@@ -151,11 +150,12 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                 RabbitMQClient.ReceivedDelegate funcionProcesarItem = new RabbitMQClient.ReceivedDelegate(ProcesarItem);
                 RabbitMQClient.ShutDownDelegate funcionShutDown = new RabbitMQClient.ShutDownDelegate(OnShutDown);
 
-                RabbitMQClient rabbitMQClient = new RabbitMQClient(RabbitMQClient.BD_SERVICIOS_WIN, COLA, loggingService, mConfigService, mLoggerFactory.CreateLogger<RabbitMQClient>(), mLoggerFactory, EXCHANGE, COLA);
+                mRabbitMQClient?.Dispose();
+                mRabbitMQClient = new RabbitMQClient(RabbitMQClient.BD_SERVICIOS_WIN, COLA, loggingService, mConfigService, mLoggerFactory.CreateLogger<RabbitMQClient>(), mLoggerFactory, EXCHANGE, COLA);
 
                 try
                 {
-                    rabbitMQClient.ObtenerElementosDeCola(funcionProcesarItem, funcionShutDown);
+                    mRabbitMQClient.ObtenerElementosDeCola(funcionProcesarItem, funcionShutDown);
                     mReiniciarLecturaRabbit = false;
                 }
                 catch (Exception ex)
@@ -166,7 +166,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
             }
         }
 
-        private void ProcesarFilasDeCola(LiveDS.ColaRow pColaRow, EntityContext entityContext, LoggingService loggingService, VirtuosoAD virtuosoAD, RedisCacheWrapper redisCacheWrapper, EntityContextBASE entityContextBASE, GnossCache gnossCache, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication, IAvailableServices availableServices)
+        private void ProcesarFilasDeCola(LiveDS.ColaRow pColaRow, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, EntityContextBASE entityContextBASE, GnossCache gnossCache, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication, IAvailableServices availableServices)
         {
             if (pColaRow.Tipo.Equals((int)TipoLive.Miembro))
             {
@@ -202,7 +202,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
                         pColaRow.Accion == (int)AccionLive.ComentarioEditado ||
                         pColaRow.Accion == (int)AccionLive.ComentarioEliminado)
                     {
-                        ProcesarFilaComentarioPerfiles(pColaRow, entityContext, loggingService, virtuosoAD, redisCacheWrapper, gnossCache, entityContextBASE, servicesUtilVirtuosoAndReplication, availableServices);
+                        ProcesarFilaComentarioPerfiles(pColaRow, entityContext, loggingService, redisCacheWrapper, gnossCache, entityContextBASE, servicesUtilVirtuosoAndReplication, availableServices);
                     }
 
                     if (HayQueProcesarFila(pColaRow, entityContext, loggingService, servicesUtilVirtuosoAndReplication))
@@ -273,7 +273,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         /// <summary>
         /// Procesa cada suscripcion para crear su notificacion correspondiente
         /// </summary>
-        public override void RealizarMantenimiento(EntityContext entityContext, EntityContextBASE entityContextBASE, UtilidadesVirtuoso utilidadesVirtuoso, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, VirtuosoAD virtuosoAD, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
+        public override void RealizarMantenimiento(EntityContext entityContext, EntityContextBASE entityContextBASE, UtilidadesVirtuoso utilidadesVirtuoso, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
         {
             #region Establezco el dominio de la cache
 
@@ -306,7 +306,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         }
 
         /// <summary>
-        /// Carga las ontologías de las que se deben descartar filas.
+        /// Carga las ontologï¿½as de las que se deben descartar filas.
         /// </summary>
         private void CargarOntosDescartarFilas(GestorParametroAplicacion pParamApliDS)
         {
@@ -397,7 +397,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
         /// Manda al base las filas de comentario.
         /// </summary>
         /// <param name="pColaRow">Fila de cola</param>personal o de ORG</param>
-        private void ProcesarFilaComentarioPerfiles(LiveDS.ColaRow pColaRow, EntityContext entityContext, LoggingService loggingService, VirtuosoAD virtuosoAD, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, EntityContextBASE entityContextBASE, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication, IAvailableServices availableServices)
+        private void ProcesarFilaComentarioPerfiles(LiveDS.ColaRow pColaRow, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, EntityContextBASE entityContextBASE, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication, IAvailableServices availableServices)
         {
             ComentarioCN comentCN = new ComentarioCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ComentarioCN>(), mLoggerFactory);
             DocumentacionCN docCN = new DocumentacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<DocumentacionCN>(), mLoggerFactory);
@@ -436,9 +436,9 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
             {
                 if (pColaRow.Accion.Equals((short)AccionLive.ComentarioEliminado))
                 {
-                    FacetadoCN facetadoCN = new FacetadoCN(mUrlIntragnoss, null, entityContext, loggingService, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<FacetadoCN>(), mLoggerFactory);
+                    FacetadoCN facetadoCN = new FacetadoCN(mUrlIntragnoss, null, entityContext, loggingService, mConfigService, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<FacetadoCN>(), mLoggerFactory);
 
-                    ActualizacionFacetadoCN actualizacionFacetadoCN = new ActualizacionFacetadoCN(mUrlIntragnoss, entityContext, loggingService, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ActualizacionFacetadoCN>(), mLoggerFactory);
+                    ActualizacionFacetadoCN actualizacionFacetadoCN = new ActualizacionFacetadoCN(mUrlIntragnoss, entityContext, loggingService, mConfigService, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ActualizacionFacetadoCN>(), mLoggerFactory);
                     string usuario = actualizacionFacetadoCN.obtenerIdusuarioDesdePerfil(perfilID).ToString();
 
                     //comprobar si no leido (virtuoso) y decrementar contador (acido)
@@ -472,7 +472,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
             if (!string.IsNullOrEmpty(ListaPerfiles))
             {
                 ListaPerfiles.Substring(0, ListaPerfiles.Length);
-                ControladorDocumentacion controladorDocumentacion = new ControladorDocumentacion(loggingService, entityContext, mConfigService, redisCacheWrapper, gnossCache, entityContextBASE, virtuosoAD, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ControladorDocumentacion>(), mLoggerFactory);
+                ControladorDocumentacion controladorDocumentacion = new ControladorDocumentacion(loggingService, entityContext, mConfigService, redisCacheWrapper, gnossCache, entityContextBASE, null, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ControladorDocumentacion>(), mLoggerFactory);
                 controladorDocumentacion.AgregarComentarioFacModeloBaseSimple(comentarioRow.ComentarioID, pColaRow.ProyectoId, mFicheroConfiguracionBDBase, mFicheroConfiguracionBD, ListaPerfiles, (AD.BASE_BD.PrioridadBase)pColaRow.Prioridad, TablaBaseProyectoID(entityContext, loggingService, servicesUtilVirtuosoAndReplication), availableServices);
             }
 
@@ -486,7 +486,7 @@ namespace Es.Riam.Gnoss.ServicioRepartoColas
             DocumentacionCN docCN = new DocumentacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<DocumentacionCN>(), mLoggerFactory);
             List<AD.EntityModel.Models.Documentacion.Documento> listaRecUsuProy = docCN.ObtenerListaRecursosUsuarioActualizarPorComunidad(perfilID);
             docCN.Dispose();
-            //crear lista de filas LiveUsuariosHTML con los 100 recursos más recientes de cada comunidad de este usuario
+            //crear lista de filas LiveUsuariosHTML con los 100 recursos mï¿½s recientes de cada comunidad de este usuario
             List<LiveUsuariosDS.ColaUsuariosRow> listaFilas = new List<LiveUsuariosDS.ColaUsuariosRow>();
             List<Guid> listaDocumentosProcesados = new List<Guid>();
 
